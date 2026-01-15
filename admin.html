@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YBM FC - 관리자 페이지</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="admin-styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <a href="index.html"><h1>⚽ YBM FC - 관리자</h1></a>
+            </div>
+            <div class="nav-auth">
+                <div class="admin-info" id="adminInfo">
+                    <span id="adminName"></span>
+                    <button class="btn-logout" id="adminLogoutBtn">로그아웃</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="admin-container">
+        <aside class="admin-sidebar">
+            <h3>관리 메뉴</h3>
+            <ul class="admin-menu">
+                <li><a href="#dashboard" class="menu-item active" data-section="dashboard">📊 대시보드</a></li>
+                <li><a href="#members" class="menu-item" data-section="members">👥 회원 관리</a></li>
+                <li><a href="#dues" class="menu-item" data-section="dues">💰 회비 관리</a></li>
+                <li><a href="#players" class="menu-item" data-section="players">⚽ 선수 관리</a></li>
+                <li><a href="#schedule" class="menu-item" data-section="schedule">📅 경기 일정</a></li>
+                <li><a href="#records" class="menu-item" data-section="records">📊 경기 기록</a></li>
+                <li><a href="#news" class="menu-item" data-section="news">📰 뉴스 관리</a></li>
+            </ul>
+        </aside>
+
+        <main class="admin-content">
+            <!-- 대시보드 섹션 -->
+            <section id="dashboard-section" class="admin-section active">
+                <h2>대시보드</h2>
+                <div class="dashboard-grid">
+                    <div class="dashboard-card">
+                        <div class="card-icon">👥</div>
+                        <div class="card-info">
+                            <h3>총 회원수</h3>
+                            <p class="card-number" id="totalMembers">0</p>
+                        </div>
+                    </div>
+                    <div class="dashboard-card">
+                        <div class="card-icon">⚽</div>
+                        <div class="card-info">
+                            <h3>총 선수수</h3>
+                            <p class="card-number" id="totalPlayers">0</p>
+                        </div>
+                    </div>
+                    <div class="dashboard-card">
+                        <div class="card-icon">📅</div>
+                        <div class="card-info">
+                            <h3>예정 경기</h3>
+                            <p class="card-number" id="totalMatches">0</p>
+                        </div>
+                    </div>
+                    <div class="dashboard-card">
+                        <div class="card-icon">📊</div>
+                        <div class="card-info">
+                            <h3>경기 기록</h3>
+                            <p class="card-number" id="totalRecords">0</p>
+                        </div>
+                    </div>
+                    <div class="dashboard-card">
+                        <div class="card-icon">📰</div>
+                        <div class="card-info">
+                            <h3>총 뉴스</h3>
+                            <p class="card-number" id="totalNews">0</p>
+                        </div>
+                    </div>
+                    <div class="dashboard-card">
+                        <div class="card-icon">🏆</div>
+                        <div class="card-info">
+                            <h3>승률</h3>
+                            <p class="card-number" id="winRate">0%</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="recent-activity">
+                    <h3>최근 활동</h3>
+                    <div class="activity-list" id="activityList">
+                        <p class="no-data">활동 내역이 없습니다.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 회원 관리 섹션 -->
+            <section id="members-section" class="admin-section">
+                <div class="section-header">
+                    <h2>회원 관리</h2>
+                </div>
+                <div class="table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>번호</th>
+                                <th>이름</th>
+                                <th>아이디</th>
+                                <th>이메일</th>
+                                <th>가입일</th>
+                                <th>관리</th>
+                            </tr>
+                        </thead>
+                        <tbody id="membersTableBody">
+                            <tr>
+                                <td colspan="6" class="no-data">회원이 없습니다.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 회비 관리 섹션 -->
+            <section id="dues-section" class="admin-section">
+                <div class="section-header">
+                    <h2>회비 관리</h2>
+                    <div class="header-actions">
+                        <button class="btn-add" onclick="showDuesSettingForm()">⚙️ 회비 설정</button>
+                        <button class="btn-add" onclick="showAddDuesForm()">+ 회비 납부 기록</button>
+                    </div>
+                </div>
+
+                <!-- 회비 설정 폼 -->
+                <div id="duesSettingContainer" class="form-container" style="display: none;">
+                    <form id="duesSettingForm" class="admin-form">
+                        <h3>회비 설정</h3>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="monthlyDues">월 회비 (원) *</label>
+                                <input type="number" id="monthlyDues" required min="0" value="10000">
+                            </div>
+                            <div class="form-group">
+                                <label for="duesYear">적용 연도 *</label>
+                                <input type="number" id="duesYear" required min="2020" value="2026">
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn-save">저장</button>
+                            <button type="button" class="btn-cancel" onclick="hideDuesSettingForm()">취소</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- 회비 납부 기록 폼 -->
+                <div id="duesFormContainer" class="form-container" style="display: none;">
+                    <form id="duesForm" class="admin-form">
+                        <h3 id="duesFormTitle">회비 납부 기록</h3>
+                        <input type="hidden" id="duesEditIndex">
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="duesMember">회원 선택 *</label>
+                                <select id="duesMember" required>
+                                    <option value="">회원을 선택하세요</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="duesAmount">납부 금액 (원) *</label>
+                                <input type="number" id="duesAmount" required min="0" value="10000">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="duesMonth">납부 월 *</label>
+                                <input type="month" id="duesMonth" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="duesPaymentDate">납부일 *</label>
+                                <input type="date" id="duesPaymentDate" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="duesMethod">납부 방법</label>
+                            <select id="duesMethod">
+                                <option value="현금">현금</option>
+                                <option value="계좌이체">계좌이체</option>
+                                <option value="카드">카드</option>
+                                <option value="기타">기타</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="duesNotes">메모</label>
+                            <textarea id="duesNotes" rows="2" placeholder="특이사항을 입력하세요"></textarea>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn-save">저장</button>
+                            <button type="button" class="btn-cancel" onclick="hideDuesForm()">취소</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- 회비 통계 -->
+                <div class="dues-stats">
+                    <div class="stat-card">
+                        <h4>이번 달 납부율</h4>
+                        <p class="stat-value" id="currentMonthRate">0%</p>
+                    </div>
+                    <div class="stat-card">
+                        <h4>총 납부 금액</h4>
+                        <p class="stat-value" id="totalDuesAmount">0원</p>
+                    </div>
+                    <div class="stat-card">
+                        <h4>미납 회원</h4>
+                        <p class="stat-value" id="unpaidMembers">0명</p>
+                    </div>
+                    <div class="stat-card">
+                        <h4>이번 달 설정 회비</h4>
+                        <p class="stat-value" id="currentDuesAmount">10,000원</p>
+                    </div>
+                </div>
+
+                <!-- 회비 납부 현황 테이블 -->
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3>회비 납부 현황</h3>
+                        <div class="filter-group">
+                            <label>필터:</label>
+                            <select id="duesFilter" onchange="filterDues()">
+                                <option value="all">전체</option>
+                                <option value="paid">납부 완료</option>
+                                <option value="unpaid">미납</option>
+                            </select>
+                            <input type="month" id="duesMonthFilter" onchange="filterDues()">
+                        </div>
+                    </div>
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>회원명</th>
+                                <th>납부 월</th>
+                                <th>납부 금액</th>
+                                <th>납부일</th>
+                                <th>납부 방법</th>
+                                <th>상태</th>
+                                <th>메모</th>
+                                <th>관리</th>
+                            </tr>
+                        </thead>
+                        <tbody id="duesTableBody">
+                            <tr>
+                                <td colspan="8" class="no-data">회비 납부 기록이 없습니다.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 선수 관리 섹션 -->
+            <section id="players-section" class="admin-section">
+                <div class="section-header">
+                    <h2>선수 관리</h2>
+                    <button class="btn-add" onclick="showAddPlayerForm()">+ 선수 추가</button>
+                </div>
+
+                <div id="playerFormContainer" class="form-container" style="display: none;">
+                    <form id="playerForm" class="admin-form">
+                        <h3 id="playerFormTitle">선수 추가</h3>
+                        <input type="hidden" id="playerEditIndex">
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="playerName">선수 이름 *</label>
+                                <input type="text" id="playerName" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="playerNumber">등번호 *</label>
+                                <input type="number" id="playerNumber" required min="1" max="99">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="playerPosition">포지션 *</label>
+                                <select id="playerPosition" required>
+                                    <option value="">선택하세요</option>
+                                    <option value="골키퍼">골키퍼</option>
+                                    <option value="수비수">수비수</option>
+                                    <option value="미드필더">미드필더</option>
+                                    <option value="포워드">포워드</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="playerDesc">설명</label>
+                                <input type="text" id="playerDesc" placeholder="선수 설명">
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn-save">저장</button>
+                            <button type="button" class="btn-cancel" onclick="hidePlayerForm()">취소</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>등번호</th>
+                                <th>이름</th>
+                                <th>포지션</th>
+                                <th>설명</th>
+                                <th>관리</th>
+                            </tr>
+                        </thead>
+                        <tbody id="playersTableBody">
+                            <tr>
+                                <td colspan="5" class="no-data">선수가 없습니다.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 경기 일정 섹션 -->
+            <section id="schedule-section" class="admin-section">
+                <div class="section-header">
+                    <h2>경기 일정 관리</h2>
+                    <button class="btn-add" onclick="showAddMatchForm()">+ 경기 추가</button>
+                </div>
+
+                <div id="matchFormContainer" class="form-container" style="display: none;">
+                    <form id="matchForm" class="admin-form">
+                        <h3 id="matchFormTitle">경기 추가</h3>
+                        <input type="hidden" id="matchEditIndex">
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="matchDate">경기 날짜 *</label>
+                                <input type="date" id="matchDate" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="matchTime">경기 시간 *</label>
+                                <input type="time" id="matchTime" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="homeTeam">홈 팀 *</label>
+                                <input type="text" id="homeTeam" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="awayTeam">원정 팀 *</label>
+                                <input type="text" id="awayTeam" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="matchVenue">경기장 *</label>
+                            <input type="text" id="matchVenue" required placeholder="예: 홈 경기장">
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn-save">저장</button>
+                            <button type="button" class="btn-cancel" onclick="hideMatchForm()">취소</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>날짜</th>
+                                <th>시간</th>
+                                <th>홈 팀</th>
+                                <th>원정 팀</th>
+                                <th>경기장</th>
+                                <th>관리</th>
+                            </tr>
+                        </thead>
+                        <tbody id="matchesTableBody">
+                            <tr>
+                                <td colspan="6" class="no-data">경기 일정이 없습니다.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 경기 기록 섹션 -->
+            <section id="records-section" class="admin-section">
+                <div class="section-header">
+                    <h2>경기 기록 관리</h2>
+                    <button class="btn-add" onclick="showAddRecordForm()">+ 경기 기록 추가</button>
+                </div>
+
+                <div id="recordFormContainer" class="form-container" style="display: none;">
+                    <form id="recordForm" class="admin-form">
+                        <h3 id="recordFormTitle">경기 기록 추가</h3>
+                        <input type="hidden" id="recordEditIndex">
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="recordDate">경기 날짜 *</label>
+                                <input type="date" id="recordDate" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="recordVenue">경기장 *</label>
+                                <input type="text" id="recordVenue" required placeholder="예: 홈 경기장">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="recordHomeTeam">홈 팀 *</label>
+                                <input type="text" id="recordHomeTeam" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="recordAwayTeam">원정 팀 *</label>
+                                <input type="text" id="recordAwayTeam" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="recordHomeScore">홈 팀 득점 *</label>
+                                <input type="number" id="recordHomeScore" required min="0" value="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="recordAwayScore">원정 팀 득점 *</label>
+                                <input type="number" id="recordAwayScore" required min="0" value="0">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="recordScorers">득점자</label>
+                            <input type="text" id="recordScorers" placeholder="예: 김민수(2), 이준호(1)">
+                            <small>득점자 이름과 골 수를 입력하세요</small>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="recordAttendance">관중 수</label>
+                                <input type="number" id="recordAttendance" min="0" placeholder="예: 15000">
+                            </div>
+                            <div class="form-group">
+                                <label for="recordResult">경기 결과 *</label>
+                                <select id="recordResult" required>
+                                    <option value="">자동 계산</option>
+                                    <option value="승리">승리</option>
+                                    <option value="무승부">무승부</option>
+                                    <option value="패배">패배</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="recordNotes">경기 메모</label>
+                            <textarea id="recordNotes" rows="3" placeholder="경기에 대한 특이사항이나 메모를 입력하세요"></textarea>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn-save">저장</button>
+                            <button type="button" class="btn-cancel" onclick="hideRecordForm()">취소</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>날짜</th>
+                                <th>경기</th>
+                                <th>스코어</th>
+                                <th>결과</th>
+                                <th>득점자</th>
+                                <th>관중</th>
+                                <th>경기장</th>
+                                <th>관리</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recordsTableBody">
+                            <tr>
+                                <td colspan="8" class="no-data">경기 기록이 없습니다.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 뉴스 관리 섹션 -->
+            <section id="news-section" class="admin-section">
+                <div class="section-header">
+                    <h2>뉴스 관리</h2>
+                    <button class="btn-add" onclick="showAddNewsForm()">+ 뉴스 추가</button>
+                </div>
+
+                <div id="newsFormContainer" class="form-container" style="display: none;">
+                    <form id="newsForm" class="admin-form">
+                        <h3 id="newsFormTitle">뉴스 추가</h3>
+                        <input type="hidden" id="newsEditIndex">
+                        
+                        <div class="form-group">
+                            <label for="newsDate">날짜 *</label>
+                            <input type="date" id="newsDate" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="newsTitle">제목 *</label>
+                            <input type="text" id="newsTitle" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="newsContent">내용 *</label>
+                            <textarea id="newsContent" rows="5" required></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="newsImages">사진 첨부 (최대 3장)</label>
+                            <input type="file" id="newsImages" accept="image/*" multiple onchange="handleNewsImageUpload(event)">
+                            <small>JPG, PNG, GIF 파일만 가능 (각 파일 최대 10MB) - 업로드 시 자동 압축됩니다</small>
+                        </div>
+
+                        <div id="newsImagePreview" class="image-preview-container"></div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn-save">저장</button>
+                            <button type="button" class="btn-cancel" onclick="hideNewsForm()">취소</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>날짜</th>
+                                <th>사진</th>
+                                <th>제목</th>
+                                <th>내용</th>
+                                <th>관리</th>
+                            </tr>
+                        </thead>
+                        <tbody id="newsTableBody">
+                            <tr>
+                                <td colspan="5" class="no-data">뉴스가 없습니다.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="auth.js"></script>
+    <script src="admin.js"></script>
+</body>
+</html>
+
