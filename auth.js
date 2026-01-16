@@ -186,15 +186,30 @@ function requireLogin() {
 // ========== 메인 페이지 뉴스 로드 ==========
 
 // 메인 페이지 뉴스 로드
-function loadMainPageNews() {
+async function loadMainPageNews() {
     const newsGrid = document.getElementById('newsGrid');
     if (!newsGrid) {
         console.log('뉴스 그리드를 찾을 수 없습니다.');
         return; // 뉴스 그리드가 없으면 종료
     }
     
-    const news = JSON.parse(localStorage.getItem('ybmfc_news') || '[]');
-    console.log('뉴스 로드:', news.length + '개의 뉴스 발견');
+    // Supabase에서 뉴스 가져오기 시도
+    let news = [];
+    if (typeof getNews !== 'undefined') {
+        try {
+            news = await getNews();
+            console.log('✅ Supabase에서 뉴스 로드:', news.length + '개의 뉴스 발견');
+        } catch (error) {
+            console.error('Supabase 뉴스 로드 실패, LocalStorage 사용:', error);
+            // 폴백: LocalStorage 사용
+            news = JSON.parse(localStorage.getItem('ybmfc_news') || '[]');
+            console.log('뉴스 로드 (LocalStorage):', news.length + '개의 뉴스 발견');
+        }
+    } else {
+        // 헬퍼 함수가 없으면 LocalStorage 사용
+        news = JSON.parse(localStorage.getItem('ybmfc_news') || '[]');
+        console.log('뉴스 로드 (LocalStorage):', news.length + '개의 뉴스 발견');
+    }
     
     if (news.length === 0) {
         newsGrid.innerHTML = `
@@ -232,26 +247,59 @@ function loadMainPageNews() {
             item.content.substring(0, 100) + '...' : 
             item.content;
         
+        // Supabase ID 또는 index 사용
+        const itemId = item.id || index;
+        
         return `
-            <div class="news-card" onclick="viewNewsDetail(${index})">
+            <div class="news-card" onclick="viewNewsDetailById('${itemId}')">
                 ${imageHtml}
                 <div class="news-date">${formattedDate}</div>
                 <h3>${item.title}</h3>
                 <p>${preview}</p>
-                <a href="#" class="read-more" onclick="event.stopPropagation(); viewNewsDetail(${index})">자세히 보기 →</a>
+                <a href="#" class="read-more" onclick="event.stopPropagation(); viewNewsDetailById('${itemId}')">자세히 보기 →</a>
             </div>
         `;
     }).join('');
 }
 
-// 뉴스 상세보기
-function viewNewsDetail(index) {
-    const news = JSON.parse(localStorage.getItem('ybmfc_news') || '[]');
-    // 날짜순 정렬 (loadMainPageNews와 동일하게)
-    news.sort((a, b) => new Date(b.date) - new Date(a.date));
+// 뉴스 상세보기 (ID로)
+async function viewNewsDetailById(itemId) {
+    let item = null;
     
-    const item = news[index];
-    if (!item) return;
+    // Supabase에서 뉴스 가져오기 시도
+    if (typeof getNews !== 'undefined') {
+        try {
+            const news = await getNews();
+            item = news.find(n => n.id === itemId || n.id.toString() === itemId.toString());
+            if (!item) {
+                // ID가 숫자인 경우 (기존 index 방식)
+                const index = parseInt(itemId);
+                if (!isNaN(index)) {
+                    news.sort((a, b) => new Date(b.date) - new Date(a.date));
+                    item = news[index];
+                }
+            }
+        } catch (error) {
+            console.error('Supabase 뉴스 상세보기 실패:', error);
+        }
+    }
+    
+    // 폴백: LocalStorage 사용
+    if (!item) {
+        const news = JSON.parse(localStorage.getItem('ybmfc_news') || '[]');
+        news.sort((a, b) => new Date(b.date) - new Date(a.date));
+        const index = parseInt(itemId);
+        if (!isNaN(index)) {
+            item = news[index];
+        } else {
+            item = news.find(n => n.id === itemId || n.id?.toString() === itemId.toString());
+        }
+    }
+    
+    if (!item) {
+        console.error('뉴스를 찾을 수 없습니다:', itemId);
+        return;
+    }
     
     const date = new Date(item.date);
     const formattedDate = date.toLocaleDateString('ko-KR');

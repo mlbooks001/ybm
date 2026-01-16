@@ -21,7 +21,19 @@ HTML, CSS, JavaScript로 제작된 축구팀 홈페이지로, 회원 관리, 뉴
 - 📊 **경기 기록 관리**: 경기 결과 및 득점 기록
 - 📰 **뉴스 관리**: 뉴스 작성 및 이미지 첨부 (자동 압축)
 
+## 🌐 배포 URL
+
+**라이브 사이트:**
+- 🏠 [메인 페이지](https://ybm-six.vercel.app/)
+- 🔐 [로그인](https://ybm-six.vercel.app/login.html)
+- ✍️ [회원가입](https://ybm-six.vercel.app/register.html)
+- 👨‍💼 [관리자 페이지](https://ybm-six.vercel.app/admin.html)
+- ⚙️ [Supabase 설정](https://ybm-six.vercel.app/setup.html)
+
 ## 🚀 시작하기
+
+### 온라인에서 사용
+위 배포 URL로 바로 접속하여 사용할 수 있습니다!
 
 ### 로컬에서 실행
 1. 저장소 클론 또는 파일 다운로드

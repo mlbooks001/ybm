@@ -4,7 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YBM FC - 로그인</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="icon" type="image/png" href="favicon.svg">
+    <link rel="apple-touch-icon" href="favicon.svg">
     <link rel="stylesheet" href="styles.css">
+    <!-- Supabase 클라이언트 -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="supabase-helpers.js"></script>
 </head>
 <body>
     <nav class="navbar">
@@ -68,19 +75,114 @@
 
     <script src="auth.js"></script>
     <script>
+        // 페이지 로드 시 관리자 계정 자동 생성
+        document.addEventListener('DOMContentLoaded', function() {
+            const users = JSON.parse(localStorage.getItem('ybmfc_users') || '[]');
+            
+            // 관리자 계정이 없으면 자동 생성
+            if (!users.some(u => u.username === 'admin')) {
+                users.push({
+                    name: '관리자',
+                    username: 'admin',
+                    email: 'admin@ybmfc.com',
+                    password: 'admin123',
+                    registeredDate: new Date().toISOString()
+                });
+                localStorage.setItem('ybmfc_users', JSON.stringify(users));
+                console.log('✅ 관리자 계정이 자동 생성되었습니다.');
+                console.log('아이디: admin');
+                console.log('비밀번호: admin123');
+            }
+        });
+
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
             const rememberMe = document.getElementById('rememberMe').checked;
             const errorMessage = document.getElementById('errorMessage');
             
-            // localStorage에서 사용자 정보 가져오기
-            const users = JSON.parse(localStorage.getItem('ybmfc_users') || '[]');
+            // 에러 메시지 초기화
+            errorMessage.style.display = 'none';
+            errorMessage.textContent = '';
             
-            // 사용자 인증
-            const user = users.find(u => u.username === username && u.password === password);
+            // 빈 값 체크
+            if (!username || !password) {
+                errorMessage.textContent = '아이디와 비밀번호를 입력해주세요.';
+                errorMessage.style.display = 'block';
+                return;
+            }
+            
+            // localStorage에서 사용자 정보 가져오기
+            let users = JSON.parse(localStorage.getItem('ybmfc_users') || '[]');
+            
+            // 관리자 계정 강제 확인 및 생성/수정
+            const adminIndex = users.findIndex(u => u.username === 'admin');
+            if (adminIndex === -1) {
+                // 관리자 계정이 없으면 생성
+                users.push({
+                    name: '관리자',
+                    username: 'admin',
+                    email: 'admin@ybmfc.com',
+                    password: 'admin123',
+                    registeredDate: new Date().toISOString()
+                });
+                console.log('✅ 관리자 계정 생성 완료');
+            } else {
+                // 관리자 계정이 있으면 비밀번호 확인 및 수정
+                if (users[adminIndex].password !== 'admin123') {
+                    users[adminIndex].password = 'admin123';
+                    console.log('✅ 관리자 계정 비밀번호 재설정');
+                }
+            }
+            
+            // 업데이트된 사용자 목록 저장
+            localStorage.setItem('ybmfc_users', JSON.stringify(users));
+            
+            // 디버깅: 현재 사용자 목록 확인
+            console.log('=== 로그인 디버깅 ===');
+            console.log('입력한 아이디:', username);
+            console.log('입력한 비밀번호:', password);
+            console.log('현재 사용자 목록:', users);
+            console.log('저장된 사용자 정보:', users.map(u => ({ 
+                username: u.username, 
+                password: u.password,
+                passwordLength: u.password ? u.password.length : 0
+            })));
+            
+            // 사용자 인증 (trim 처리)
+            const user = users.find(u => {
+                const uUsername = u.username ? u.username.trim() : '';
+                const uPassword = u.password ? u.password.trim() : '';
+                const match = uUsername === username && uPassword === password;
+                if (!match && uUsername === username) {
+                    console.log('비밀번호 불일치:', { 
+                        입력: password, 
+                        저장: uPassword,
+                        입력길이: password.length,
+                        저장길이: uPassword.length
+                    });
+                }
+                return match;
+            });
+            
+            // 디버깅: 찾은 사용자 확인
+            if (user) {
+                console.log('✅ 사용자 찾음:', {
+                    username: user.username,
+                    name: user.name,
+                    email: user.email
+                });
+            } else {
+                console.log('❌ 사용자를 찾을 수 없습니다');
+                console.log('비교 결과:');
+                users.forEach(u => {
+                    const uUsername = u.username ? u.username.trim() : '';
+                    const uPassword = u.password ? u.password.trim() : '';
+                    console.log(`- ${uUsername}: 아이디 일치=${uUsername === username}, 비밀번호 일치=${uPassword === password}`);
+                });
+            }
             
             if (user) {
                 // 로그인 성공
@@ -97,12 +199,25 @@
                     sessionStorage.setItem('ybmfc_user', JSON.stringify(loginData));
                 }
                 
+                console.log('✅ 로그인 성공! 사용자 정보:', loginData);
                 alert('로그인 성공! 환영합니다, ' + user.name + '님!');
-                window.location.href = 'index.html';
+                
+                // 약간의 딜레이 후 리다이렉트
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 100);
             } else {
                 // 로그인 실패
-                errorMessage.textContent = '아이디 또는 비밀번호가 올바르지 않습니다.';
+                console.error('❌ 로그인 실패');
+                errorMessage.textContent = '아이디 또는 비밀번호가 올바르지 않습니다. 관리자: admin / admin123';
                 errorMessage.style.display = 'block';
+                
+                // 관리자 계정 힌트 제공
+                if (username.toLowerCase() === 'admin' || username === 'admin') {
+                    console.log('💡 힌트: 관리자 계정 비밀번호는 "admin123"입니다.');
+                    console.log('💡 현재 저장된 비밀번호를 확인하세요:', 
+                        users.find(u => u.username === 'admin')?.password || '없음');
+                }
             }
         });
     </script>

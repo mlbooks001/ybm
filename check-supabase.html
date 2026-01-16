@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase 연동 확인</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="icon" type="image/png" href="favicon.svg">
+    <link rel="apple-touch-icon" href="favicon.svg">
+    <link rel="stylesheet" href="styles.css">
+    <!-- Supabase 클라이언트 -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="supabase-helpers.js"></script>
+    <style>
+        .check-container {
+            max-width: 1000px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .check-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        .check-section h2 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+        }
+        .status-box {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-weight: 500;
+        }
+        .status-success {
+            background: #d1fae5;
+            color: #065f46;
+            border-left: 4px solid #10b981;
+        }
+        .status-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border-left: 4px solid #ef4444;
+        }
+        .status-warning {
+            background: #fef3c7;
+            color: #92400e;
+            border-left: 4px solid #f59e0b;
+        }
+        .status-info {
+            background: #dbeafe;
+            color: #1e40af;
+            border-left: 4px solid #3b82f6;
+        }
+        button {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            margin: 10px 5px;
+            transition: transform 0.3s ease;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(30, 64, 175, 0.3);
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .info-card {
+            background: var(--light-color);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary-color);
+        }
+        .info-card strong {
+            color: var(--primary-color);
+        }
+        pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 0.9rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        th {
+            background: var(--primary-color);
+            color: white;
+        }
+        tr:hover {
+            background: var(--light-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="check-container">
+        <div class="check-section">
+            <h1 style="text-align: center; color: var(--primary-color);">🔍 Supabase 연동 확인</h1>
+            <p style="text-align: center; color: var(--text-color);">YBM FC 홈페이지의 Supabase 연동 상태를 확인합니다.</p>
+        </div>
+
+        <!-- 1. 설정 확인 -->
+        <div class="check-section">
+            <h2>1️⃣ Supabase 설정 확인</h2>
+            <div id="configStatus" class="status-box status-info">확인 중...</div>
+            <button onclick="checkConfig()">🔍 설정 확인</button>
+            <div id="configDetails" style="margin-top: 15px;"></div>
+        </div>
+
+        <!-- 2. 클라이언트 연결 확인 -->
+        <div class="check-section">
+            <h2>2️⃣ Supabase 클라이언트 연결 확인</h2>
+            <div id="clientStatus" class="status-box status-info">확인 중...</div>
+            <button onclick="checkClient()">🔗 연결 확인</button>
+            <div id="clientDetails" style="margin-top: 15px;"></div>
+        </div>
+
+        <!-- 3. 테이블 확인 -->
+        <div class="check-section">
+            <h2>3️⃣ 데이터베이스 테이블 확인</h2>
+            <div id="tablesStatus" class="status-box status-info">확인 중...</div>
+            <button onclick="checkTables()">📊 테이블 확인</button>
+            <div id="tablesDetails" style="margin-top: 15px;"></div>
+        </div>
+
+        <!-- 4. 데이터 확인 -->
+        <div class="check-section">
+            <h2>4️⃣ 데이터 확인</h2>
+            <div id="dataStatus" class="status-box status-info">확인 중...</div>
+            <button onclick="checkData()">📦 데이터 확인</button>
+            <div id="dataDetails" style="margin-top: 15px;"></div>
+        </div>
+
+        <!-- 5. 전체 확인 -->
+        <div class="check-section">
+            <h2>5️⃣ 전체 연동 확인</h2>
+            <button onclick="checkAll()" style="width: 100%; padding: 20px; font-size: 1.2rem;">
+                🔄 전체 확인하기
+            </button>
+            <div id="allStatus" style="margin-top: 20px;"></div>
+        </div>
+
+        <!-- 결과 요약 -->
+        <div class="check-section">
+            <h2>📋 확인 결과 요약</h2>
+            <div id="summary" style="margin-top: 15px;"></div>
+        </div>
+    </div>
+
+    <script>
+        // 설정 확인
+        function checkConfig() {
+            const status = document.getElementById('configStatus');
+            const details = document.getElementById('configDetails');
+            
+            try {
+                const config = SUPABASE_CONFIG;
+                
+                if (config && config.url && config.anonKey) {
+                    status.className = 'status-box status-success';
+                    status.innerHTML = '✅ Supabase 설정이 올바르게 구성되어 있습니다.';
+                    
+                    details.innerHTML = `
+                        <div class="info-grid">
+                            <div class="info-card">
+                                <strong>Project URL:</strong><br>
+                                ${config.url}
+                            </div>
+                            <div class="info-card">
+                                <strong>API Key:</strong><br>
+                                ${config.anonKey.substring(0, 30)}...
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    status.className = 'status-box status-error';
+                    status.innerHTML = '❌ Supabase 설정이 완전하지 않습니다.';
+                }
+            } catch (error) {
+                status.className = 'status-box status-error';
+                status.innerHTML = `❌ 설정 확인 오류: ${error.message}`;
+            }
+        }
+
+        // 클라이언트 연결 확인
+        async function checkClient() {
+            const status = document.getElementById('clientStatus');
+            const details = document.getElementById('clientDetails');
+            
+            status.className = 'status-box status-info';
+            status.innerHTML = '확인 중...';
+            
+            try {
+                if (typeof supabase === 'undefined' || !supabase) {
+                    status.className = 'status-box status-error';
+                    status.innerHTML = '❌ Supabase 클라이언트가 초기화되지 않았습니다.';
+                    details.innerHTML = '<div class="status-box status-warning">페이지를 새로고침하고 다시 시도하세요.</div>';
+                    return;
+                }
+                
+                // 간단한 연결 테스트
+                const { data, error } = await supabase.from('news').select('id').limit(1);
+                
+                if (error && error.code === 'PGRST116') {
+                    status.className = 'status-box status-warning';
+                    status.innerHTML = '⚠️ Supabase 클라이언트는 연결되었지만 테이블이 없습니다.';
+                    details.innerHTML = '<div class="status-box status-info">setup.html 페이지에서 SQL 스키마를 실행하세요.</div>';
+                } else if (error) {
+                    status.className = 'status-box status-error';
+                    status.innerHTML = `❌ 연결 오류: ${error.message}`;
+                    details.innerHTML = `<pre>${JSON.stringify(error, null, 2)}</pre>`;
+                } else {
+                    status.className = 'status-box status-success';
+                    status.innerHTML = '✅ Supabase 클라이언트가 정상적으로 연결되었습니다!';
+                    details.innerHTML = '<div class="status-box status-success">데이터베이스 연결이 성공적으로 이루어졌습니다.</div>';
+                }
+            } catch (error) {
+                status.className = 'status-box status-error';
+                status.innerHTML = `❌ 연결 테스트 오류: ${error.message}`;
+                details.innerHTML = `<pre>${error.stack}</pre>`;
+            }
+        }
+
+        // 테이블 확인
+        async function checkTables() {
+            const status = document.getElementById('tablesStatus');
+            const details = document.getElementById('tablesDetails');
+            
+            status.className = 'status-box status-info';
+            status.innerHTML = '확인 중...';
+            
+            const requiredTables = [
+                'users', 'players', 'matches', 'match_records', 
+                'news', 'dues_settings', 'dues_payments'
+            ];
+            
+            const results = [];
+            
+            for (const tableName of requiredTables) {
+                try {
+                    const { data, error } = await supabase.from(tableName).select('id').limit(1);
+                    
+                    if (error && error.code === 'PGRST116') {
+                        results.push({ name: tableName, status: 'missing', error: error.message });
+                    } else if (error) {
+                        results.push({ name: tableName, status: 'error', error: error.message });
+                    } else {
+                        results.push({ name: tableName, status: 'exists', count: data ? data.length : 0 });
+                    }
+                } catch (error) {
+                    results.push({ name: tableName, status: 'error', error: error.message });
+                }
+            }
+            
+            const exists = results.filter(r => r.status === 'exists').length;
+            const missing = results.filter(r => r.status === 'missing').length;
+            const errors = results.filter(r => r.status === 'error').length;
+            
+            if (exists === requiredTables.length) {
+                status.className = 'status-box status-success';
+                status.innerHTML = `✅ 모든 테이블이 존재합니다! (${exists}/${requiredTables.length})`;
+            } else if (missing > 0) {
+                status.className = 'status-box status-warning';
+                status.innerHTML = `⚠️ 일부 테이블이 없습니다. (존재: ${exists}, 없음: ${missing})`;
+            } else {
+                status.className = 'status-box status-error';
+                status.innerHTML = `❌ 테이블 확인 중 오류가 발생했습니다. (오류: ${errors})`;
+            }
+            
+            let html = '<table><thead><tr><th>테이블명</th><th>상태</th><th>정보</th></tr></thead><tbody>';
+            results.forEach(result => {
+                const statusColor = result.status === 'exists' ? 'status-success' : 
+                                   result.status === 'missing' ? 'status-warning' : 'status-error';
+                const statusText = result.status === 'exists' ? '✅ 존재함' : 
+                                  result.status === 'missing' ? '⚠️ 없음' : '❌ 오류';
+                html += `<tr>
+                    <td><strong>${result.name}</strong></td>
+                    <td class="${statusColor}">${statusText}</td>
+                    <td>${result.error || (result.count !== undefined ? `${result.count}개 데이터` : '')}</td>
+                </tr>`;
+            });
+            html += '</tbody></table>';
+            details.innerHTML = html;
+        }
+
+        // 데이터 확인
+        async function checkData() {
+            const status = document.getElementById('dataStatus');
+            const details = document.getElementById('dataDetails');
+            
+            status.className = 'status-box status-info';
+            status.innerHTML = '확인 중...';
+            
+            const checks = {};
+            
+            try {
+                // 사용자 데이터
+                try {
+                    const { data, error } = await supabase.from('users').select('id').limit(1);
+                    checks.users = { exists: !error && data && data.length > 0, error };
+                } catch (e) {
+                    checks.users = { exists: false, error: e.message };
+                }
+                
+                // 선수 데이터
+                try {
+                    const { data, error } = await supabase.from('players').select('id').limit(1);
+                    checks.players = { exists: !error && data && data.length > 0, error };
+                } catch (e) {
+                    checks.players = { exists: false, error: e.message };
+                }
+                
+                // 뉴스 데이터
+                try {
+                    const { data, error } = await supabase.from('news').select('id').limit(1);
+                    checks.news = { exists: !error && data && data.length > 0, error };
+                } catch (e) {
+                    checks.news = { exists: false, error: e.message };
+                }
+                
+                // 경기 일정 데이터
+                try {
+                    const { data, error } = await supabase.from('matches').select('id').limit(1);
+                    checks.matches = { exists: !error && data && data.length > 0, error };
+                } catch (e) {
+                    checks.matches = { exists: false, error: e.message };
+                }
+                
+                const hasData = Object.values(checks).filter(c => c.exists).length;
+                const total = Object.keys(checks).length;
+                
+                if (hasData === total) {
+                    status.className = 'status-box status-success';
+                    status.innerHTML = `✅ 모든 데이터가 존재합니다! (${hasData}/${total})`;
+                } else if (hasData > 0) {
+                    status.className = 'status-box status-warning';
+                    status.innerHTML = `⚠️ 일부 데이터만 존재합니다. (${hasData}/${total})`;
+                } else {
+                    status.className = 'status-box status-warning';
+                    status.innerHTML = `⚠️ 초기 데이터가 없습니다. setup.html에서 생성하세요.`;
+                }
+                
+                let html = '<table><thead><tr><th>테이블</th><th>데이터 존재</th><th>상태</th></tr></thead><tbody>';
+                Object.entries(checks).forEach(([table, check]) => {
+                    html += `<tr>
+                        <td><strong>${table}</strong></td>
+                        <td>${check.exists ? '✅ 있음' : '❌ 없음'}</td>
+                        <td>${check.error ? check.error.message || check.error : '정상'}</td>
+                    </tr>`;
+                });
+                html += '</tbody></table>';
+                details.innerHTML = html;
+                
+            } catch (error) {
+                status.className = 'status-box status-error';
+                status.innerHTML = `❌ 데이터 확인 오류: ${error.message}`;
+                details.innerHTML = `<pre>${error.stack}</pre>`;
+            }
+        }
+
+        // 전체 확인
+        async function checkAll() {
+            const allStatus = document.getElementById('allStatus');
+            allStatus.innerHTML = '<div class="status-box status-info">전체 확인을 시작합니다...</div>';
+            
+            checkConfig();
+            await checkClient();
+            await checkTables();
+            await checkData();
+            
+            setTimeout(() => {
+                generateSummary();
+            }, 2000);
+        }
+
+        // 요약 생성
+        function generateSummary() {
+            const summary = document.getElementById('summary');
+            const sections = [
+                document.getElementById('configStatus'),
+                document.getElementById('clientStatus'),
+                document.getElementById('tablesStatus'),
+                document.getElementById('dataStatus')
+            ];
+            
+            let html = '<div class="info-grid">';
+            
+            sections.forEach((section, index) => {
+                const statusText = section.innerHTML;
+                const isSuccess = statusText.includes('✅');
+                const isWarning = statusText.includes('⚠️');
+                const isError = statusText.includes('❌');
+                
+                let statusClass = 'status-info';
+                if (isSuccess) statusClass = 'status-success';
+                else if (isWarning) statusClass = 'status-warning';
+                else if (isError) statusClass = 'status-error';
+                
+                const titles = ['설정', '클라이언트', '테이블', '데이터'];
+                html += `<div class="status-box ${statusClass}">
+                    <strong>${titles[index]}:</strong> ${statusText.substring(0, 100)}
+                </div>`;
+            });
+            
+            html += '</div>';
+            
+            const allSuccess = sections.every(s => s.innerHTML.includes('✅'));
+            const hasError = sections.some(s => s.innerHTML.includes('❌'));
+            
+            if (allSuccess) {
+                html += '<div class="status-box status-success" style="margin-top: 20px; text-align: center; font-size: 1.2rem;"><strong>🎉 모든 확인이 완료되었습니다! Supabase가 정상적으로 연동되어 있습니다!</strong></div>';
+            } else if (hasError) {
+                html += '<div class="status-box status-error" style="margin-top: 20px;"><strong>❌ 일부 확인에서 오류가 발생했습니다. 위의 각 섹션을 확인하세요.</strong></div>';
+            } else {
+                html += '<div class="status-box status-warning" style="margin-top: 20px;"><strong>⚠️ 일부 설정이 완료되지 않았습니다. setup.html 페이지에서 설정을 완료하세요.</strong></div>';
+            }
+            
+            summary.innerHTML = html;
+        }
+
+        // 페이지 로드 시 자동 확인
+        window.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                checkConfig();
+                checkClient();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

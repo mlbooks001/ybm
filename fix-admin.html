@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>관리자 계정 수정</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="icon" type="image/png" href="favicon.svg">
+    <link rel="apple-touch-icon" href="favicon.svg">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #1e40af;
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 12px 30px;
+            background: #1e40af;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #3b82f6;
+        }
+        .info {
+            background: #e0f2fe;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .success {
+            background: #d1fae5;
+            color: #065f46;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        pre {
+            background: #f3f4f6;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 관리자 계정 수정 도구</h1>
+        
+        <div class="info">
+            <strong>관리자 계정 정보:</strong><br>
+            아이디: <code>admin</code><br>
+            비밀번호: <code>admin123</code>
+        </div>
+
+        <button onclick="createAdminAccount()">1️⃣ 관리자 계정 생성/재설정</button>
+        <button onclick="checkUsers()">2️⃣ 현재 사용자 목록 확인</button>
+        <button onclick="clearAllUsers()">3️⃣ 모든 사용자 삭제</button>
+        <button onclick="testLogin()">4️⃣ 로그인 테스트</button>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        function createAdminAccount() {
+            const result = document.getElementById('result');
+            result.innerHTML = '<div class="info">처리 중...</div>';
+
+            try {
+                let users = JSON.parse(localStorage.getItem('ybmfc_users') || '[]');
+                
+                // 기존 admin 계정 제거
+                users = users.filter(u => u.username !== 'admin');
+                
+                // 새 admin 계정 생성
+                users.push({
+                    name: '관리자',
+                    username: 'admin',
+                    email: 'admin@ybmfc.com',
+                    password: 'admin123',
+                    registeredDate: new Date().toISOString()
+                });
+                
+                localStorage.setItem('ybmfc_users', JSON.stringify(users));
+                
+                result.innerHTML = `
+                    <div class="success">
+                        ✅ 관리자 계정이 성공적으로 생성되었습니다!<br><br>
+                        <strong>아이디:</strong> admin<br>
+                        <strong>비밀번호:</strong> admin123<br><br>
+                        이제 로그인 페이지에서 로그인할 수 있습니다.
+                    </div>
+                    <pre>${JSON.stringify(users, null, 2)}</pre>
+                `;
+                
+                console.log('✅ 관리자 계정 생성 완료:', users);
+            } catch (error) {
+                result.innerHTML = `<div class="error">❌ 오류: ${error.message}</div>`;
+                console.error('오류:', error);
+            }
+        }
+
+        function checkUsers() {
+            const result = document.getElementById('result');
+            const users = JSON.parse(localStorage.getItem('ybmfc_users') || '[]');
+            
+            if (users.length === 0) {
+                result.innerHTML = '<div class="error">❌ 저장된 사용자가 없습니다.</div>';
+            } else {
+                let html = '<div class="info"><strong>현재 사용자 목록:</strong></div>';
+                html += '<pre>' + JSON.stringify(users, null, 2) + '</pre>';
+                
+                const adminExists = users.some(u => u.username === 'admin');
+                if (adminExists) {
+                    const admin = users.find(u => u.username === 'admin');
+                    html += `<div class="success">✅ 관리자 계정이 존재합니다.<br>비밀번호: ${admin.password}</div>`;
+                } else {
+                    html += '<div class="error">❌ 관리자 계정이 없습니다. 위의 버튼으로 생성하세요.</div>';
+                }
+                
+                result.innerHTML = html;
+            }
+        }
+
+        function clearAllUsers() {
+            if (confirm('정말 모든 사용자를 삭제하시겠습니까?')) {
+                localStorage.removeItem('ybmfc_users');
+                document.getElementById('result').innerHTML = '<div class="success">✅ 모든 사용자가 삭제되었습니다. 관리자 계정을 다시 생성하세요.</div>';
+            }
+        }
+
+        function testLogin() {
+            const result = document.getElementById('result');
+            const users = JSON.parse(localStorage.getItem('ybmfc_users') || '[]');
+            const admin = users.find(u => u.username === 'admin' && u.password === 'admin123');
+            
+            if (admin) {
+                result.innerHTML = `
+                    <div class="success">
+                        ✅ 로그인 테스트 성공!<br><br>
+                        관리자 계정으로 로그인할 수 있습니다.<br>
+                        <a href="login.html" style="color: #1e40af; font-weight: bold;">로그인 페이지로 이동 →</a>
+                    </div>
+                `;
+            } else {
+                result.innerHTML = '<div class="error">❌ 로그인 테스트 실패. 관리자 계정을 생성하세요.</div>';
+            }
+        }
+
+        // 페이지 로드 시 현재 상태 확인
+        window.addEventListener('DOMContentLoaded', function() {
+            checkUsers();
+        });
+    </script>
+</body>
+</html>

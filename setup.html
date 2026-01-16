@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YBM FC - Supabase 초기 설정</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="icon" type="image/png" href="favicon.svg">
+    <link rel="apple-touch-icon" href="favicon.svg">
+    <link rel="stylesheet" href="styles.css">
+    <!-- Supabase 클라이언트 -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="supabase-helpers.js"></script>
+    <style>
+        .setup-container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 40px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .setup-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .setup-header h1 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        .step {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: var(--light-color);
+            border-radius: 10px;
+            border-left: 4px solid var(--primary-color);
+        }
+        .step-number {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .step-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .step-content {
+            color: var(--text-color);
+            margin-left: 40px;
+        }
+        .btn-setup {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 30px;
+            transition: transform 0.3s ease;
+        }
+        .btn-setup:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(30, 64, 175, 0.3);
+        }
+        .btn-setup:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .status {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            font-weight: 500;
+        }
+        .status.success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .status.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .status.info {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        .sql-box {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        .btn-copy {
+            padding: 5px 15px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 5px;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="setup-container">
+        <div class="setup-header">
+            <h1>🚀 YBM FC Supabase 초기 설정</h1>
+            <p>이 페이지에서 Supabase 데이터베이스를 자동으로 설정할 수 있습니다.</p>
+        </div>
+
+        <div class="step">
+            <div class="step-title">
+                <span class="step-number">1</span>
+                데이터베이스 테이블 생성
+            </div>
+            <div class="step-content">
+                <p>아래 SQL을 복사하여 Supabase SQL Editor에서 실행하세요:</p>
+                <div class="sql-box" id="sqlBox">
+                    <!-- SQL 내용이 여기에 표시됩니다 -->
+                </div>
+                <button class="btn-copy" onclick="copySQL()">📋 SQL 복사</button>
+                <div id="step1Status"></div>
+            </div>
+        </div>
+
+        <div class="step">
+            <div class="step-title">
+                <span class="step-number">2</span>
+                Storage Bucket 생성
+            </div>
+            <div class="step-content">
+                <p>Supabase 대시보드에서 Storage → Create bucket을 클릭하세요:</p>
+                <ul>
+                    <li><strong>Name:</strong> news-images</li>
+                    <li><strong>Public bucket:</strong> ✅ 체크</li>
+                </ul>
+                <div id="step2Status"></div>
+            </div>
+        </div>
+
+        <div class="step">
+            <div class="step-title">
+                <span class="step-number">3</span>
+                초기 데이터 자동 생성
+            </div>
+            <div class="step-content">
+                <p>아래 버튼을 클릭하면 관리자 계정, 선수, 뉴스 등의 초기 데이터가 자동으로 생성됩니다.</p>
+                <button class="btn-setup" id="initDataBtn" onclick="initializeData()">
+                    🎯 초기 데이터 생성하기
+                </button>
+                <div id="step3Status"></div>
+            </div>
+        </div>
+
+        <div class="step">
+            <div class="step-title">
+                <span class="step-number">4</span>
+                설정 완료 확인
+            </div>
+            <div class="step-content">
+                <p>모든 설정이 완료되면 아래 버튼을 클릭하여 확인하세요.</p>
+                <button class="btn-setup" onclick="checkSetup()">
+                    ✅ 설정 확인하기
+                </button>
+                <div id="step4Status"></div>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 40px;">
+            <a href="index.html" class="btn-setup" style="text-decoration: none; display: inline-block; width: auto; padding: 10px 30px;">
+                🏠 메인 페이지로 이동
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // SQL 내용 로드
+        async function loadSQL() {
+            try {
+                const response = await fetch('supabase-schema.sql');
+                const sql = await response.text();
+                document.getElementById('sqlBox').textContent = sql;
+            } catch (error) {
+                document.getElementById('sqlBox').textContent = 'SQL 파일을 로드할 수 없습니다. supabase-schema.sql 파일을 확인하세요.';
+            }
+        }
+
+        // SQL 복사
+        function copySQL() {
+            const sqlBox = document.getElementById('sqlBox');
+            const text = sqlBox.textContent;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                alert('✅ SQL이 클립보드에 복사되었습니다!');
+            }).catch(err => {
+                alert('❌ 복사 실패. 수동으로 복사하세요.');
+            });
+        }
+
+        // 초기 데이터 생성
+        async function initializeData() {
+            const btn = document.getElementById('initDataBtn');
+            const status = document.getElementById('step3Status');
+            
+            btn.disabled = true;
+            btn.textContent = '⏳ 생성 중...';
+            status.innerHTML = '<div class="status info">초기 데이터를 생성하는 중입니다...</div>';
+
+            try {
+                // 관리자 계정 확인 및 생성
+                const { data: adminUser } = await supabase
+                    .from('users')
+                    .select('*')
+                    .eq('username', 'admin')
+                    .single();
+
+                if (!adminUser) {
+                    await supabase.from('users').insert([{
+                        username: 'admin',
+                        name: '관리자',
+                        email: 'admin@ybmfc.com',
+                        password: 'admin123',
+                        registered_date: new Date().toISOString()
+                    }]);
+                    console.log('✅ 관리자 계정 생성 완료');
+                }
+
+                // 선수 데이터
+                const { data: players } = await supabase.from('players').select('id').limit(1);
+                if (!players || players.length === 0) {
+                    await supabase.from('players').insert([
+                        { number: 10, name: '김민수', position: '미드필더', description: '팀의 핵심 플레이메이커' },
+                        { number: 9, name: '이준호', position: '포워드', description: '시즌 최다 득점왕' },
+                        { number: 1, name: '박지성', position: '골키퍼', description: '든든한 마지막 수비수' },
+                        { number: 5, name: '최동원', position: '수비수', description: '강력한 센터백' }
+                    ]);
+                    console.log('✅ 샘플 선수 데이터 생성 완료');
+                }
+
+                // 뉴스 데이터
+                const { data: news } = await supabase.from('news').select('id').limit(1);
+                if (!news || news.length === 0) {
+                    await supabase.from('news').insert([
+                        { date: '2026-01-02', title: '신규 선수 영입 완료', content: '유망주 정대만 선수가 YBM FC에 합류했습니다. 앞으로의 활약이 기대됩니다.', images: [] },
+                        { date: '2025-12-28', title: '시즌 결산 및 시상식', content: '2025 시즌을 마무리하며 MVP 및 각종 시상이 진행되었습니다.', images: [] },
+                        { date: '2025-12-20', title: '팬 미팅 이벤트 개최', content: '선수들과 팬들이 함께하는 특별한 만남의 시간이 마련되었습니다.', images: [] }
+                    ]);
+                    console.log('✅ 샘플 뉴스 데이터 생성 완료');
+                }
+
+                // 경기 일정
+                const { data: matches } = await supabase.from('matches').select('id').limit(1);
+                if (!matches || matches.length === 0) {
+                    await supabase.from('matches').insert([
+                        { date: '2026-01-15', time: '19:00', home_team: 'YBM FC', away_team: '서울 유나이티드', venue: '홈 경기장' },
+                        { date: '2026-01-22', time: '16:00', home_team: '부산 블루스', away_team: 'YBM FC', venue: '원정 경기장' },
+                        { date: '2026-02-05', time: '15:00', home_team: 'YBM FC', away_team: '대전 드래곤즈', venue: '홈 경기장' }
+                    ]);
+                    console.log('✅ 샘플 경기 일정 생성 완료');
+                }
+
+                status.innerHTML = '<div class="status success">✅ 초기 데이터 생성이 완료되었습니다!</div>';
+                btn.textContent = '✅ 완료';
+            } catch (error) {
+                console.error('초기 데이터 생성 오류:', error);
+                status.innerHTML = `<div class="status error">❌ 오류: ${error.message}</div>`;
+                btn.disabled = false;
+                btn.textContent = '🎯 초기 데이터 생성하기';
+            }
+        }
+
+        // 설정 확인
+        async function checkSetup() {
+            const status = document.getElementById('step4Status');
+            status.innerHTML = '<div class="status info">설정을 확인하는 중입니다...</div>';
+
+            try {
+                const checks = {
+                    tables: false,
+                    admin: false,
+                    players: false,
+                    news: false
+                };
+
+                // 테이블 확인
+                try {
+                    await supabase.from('users').select('id').limit(1);
+                    checks.tables = true;
+                } catch (e) {
+                    checks.tables = false;
+                }
+
+                // 관리자 확인
+                try {
+                    const { data } = await supabase.from('users').select('*').eq('username', 'admin').single();
+                    checks.admin = !!data;
+                } catch (e) {
+                    checks.admin = false;
+                }
+
+                // 선수 확인
+                try {
+                    const { data } = await supabase.from('players').select('id').limit(1);
+                    checks.players = data && data.length > 0;
+                } catch (e) {
+                    checks.players = false;
+                }
+
+                // 뉴스 확인
+                try {
+                    const { data } = await supabase.from('news').select('id').limit(1);
+                    checks.news = data && data.length > 0;
+                } catch (e) {
+                    checks.news = false;
+                }
+
+                let result = '<div class="status success"><strong>✅ 설정 확인 결과:</strong><br>';
+                result += `테이블: ${checks.tables ? '✅' : '❌'}<br>`;
+                result += `관리자 계정: ${checks.admin ? '✅' : '❌'}<br>`;
+                result += `선수 데이터: ${checks.players ? '✅' : '❌'}<br>`;
+                result += `뉴스 데이터: ${checks.news ? '✅' : '❌'}</div>`;
+
+                if (checks.tables && checks.admin && checks.players && checks.news) {
+                    result += '<div class="status success" style="margin-top: 10px;"><strong>🎉 모든 설정이 완료되었습니다!</strong></div>';
+                }
+
+                status.innerHTML = result;
+            } catch (error) {
+                status.innerHTML = `<div class="status error">❌ 확인 오류: ${error.message}</div>`;
+            }
+        }
+
+        // 페이지 로드 시 SQL 로드
+        window.addEventListener('DOMContentLoaded', loadSQL);
+    </script>
+</body>
+</html>

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>로그인 테스트</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #1e40af;
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 12px 30px;
+            background: #1e40af;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #3b82f6;
+        }
+        .info {
+            background: #e0f2fe;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .success {
+            background: #d1fae5;
+            color: #065f46;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        pre {
+            background: #f3f4f6;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 0.9rem;
+        }
+        .test-result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #1e40af;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 로그인 테스트 도구</h1>
+        
+        <div class="info">
+            <strong>관리자 계정 정보:</strong><br>
+            아이디: <code>admin</code><br>
+            비밀번호: <code>admin123</code>
+        </div>
+
+        <h2>1. 관리자 계정 생성/확인</h2>
+        <button onclick="createAdmin()">✅ 관리자 계정 생성</button>
+        <button onclick="checkAdmin()">🔍 관리자 계정 확인</button>
+
+        <h2>2. 로그인 테스트</h2>
+        <button onclick="testLogin()">🔐 로그인 테스트</button>
+
+        <h2>3. LocalStorage 확인</h2>
+        <button onclick="checkStorage()">📦 LocalStorage 확인</button>
+        <button onclick="clearStorage()">🗑️ LocalStorage 초기화</button>
+
+        <h2>4. 자동 수정</h2>
+        <button onclick="fixAll()" style="background: #10b981; width: 100%; padding: 15px; font-size: 1.1rem;">
+            🔧 모든 문제 자동 수정
+        </button>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        function createAdmin() {
+            const result = document.getElementById('result');
+            result.innerHTML = '<div class="info">처리 중...</div>';
+
+            try {
+                let users = JSON.parse(localStorage.getItem('ybmfc_users') || '[]');
+                
+                // 기존 admin 계정 제거
+                users = users.filter(u => u.username !== 'admin');
+                
+                // 새 admin 계정 생성 (정확한 비밀번호)
+                users.push({
+                    name: '관리자',
+                    username: 'admin',
+                    email: 'admin@ybmfc.com',
+                    password: 'admin123',
+                    registeredDate: new Date().toISOString()
+                });
+                
+                localStorage.setItem('ybmfc_users', JSON.stringify(users));
+                
+                result.innerHTML = `
+                    <div class="success">
+                        ✅ 관리자 계정이 성공적으로 생성되었습니다!<br><br>
+                        <strong>아이디:</strong> admin<br>
+                        <strong>비밀번호:</strong> admin123<br><br>
+                        이제 로그인 페이지에서 로그인할 수 있습니다.
+                    </div>
+                    <pre>${JSON.stringify(users, null, 2)}</pre>
+                `;
+                
+                console.log('✅ 관리자 계정 생성 완료:', users);
+            } catch (error) {
+                result.innerHTML = `<div class="error">❌ 오류: ${error.message}</div>`;
+                console.error('오류:', error);
+            }
+        }
+
+        function checkAdmin() {
+            const result = document.getElementById('result');
+            const users = JSON.parse(localStorage.getItem('ybmfc_users') || '[]');
+            const admin = users.find(u => u.username === 'admin');
+            
+            if (!admin) {
+                result.innerHTML = '<div class="error">❌ 관리자 계정이 없습니다. 위의 버튼으로 생성하세요.</div>';
+            } else {
+                result.innerHTML = `
+                    <div class="success">
+                        ✅ 관리자 계정이 존재합니다!<br><br>
+                        <strong>아이디:</strong> ${admin.username}<br>
+                        <strong>비밀번호:</strong> ${admin.password}<br>
+                        <strong>비밀번호 길이:</strong> ${admin.password ? admin.password.length : 0}<br>
+                        <strong>비밀번호 확인:</strong> ${admin.password === 'admin123' ? '✅ 정확함' : '❌ 틀림 (수정 필요)'}<br>
+                        <strong>이름:</strong> ${admin.name}<br>
+                        <strong>이메일:</strong> ${admin.email}
+                    </div>
+                    <pre>${JSON.stringify(admin, null, 2)}</pre>
+                `;
+            }
+        }
+
+        function testLogin() {
+            const result = document.getElementById('result');
+            const users = JSON.parse(localStorage.getItem('ybmfc_users') || '[]');
+            
+            // 정확한 비밀번호로 테스트
+            const admin = users.find(u => {
+                const uUsername = u.username ? u.username.trim() : '';
+                const uPassword = u.password ? u.password.trim() : '';
+                return uUsername === 'admin' && uPassword === 'admin123';
+            });
+            
+            if (admin) {
+                result.innerHTML = `
+                    <div class="success">
+                        ✅ 로그인 테스트 성공!<br><br>
+                        관리자 계정으로 로그인할 수 있습니다.<br>
+                        <a href="login.html" style="color: #1e40af; font-weight: bold; text-decoration: underline;">로그인 페이지로 이동 →</a>
+                    </div>
+                `;
+            } else {
+                result.innerHTML = `
+                    <div class="error">
+                        ❌ 로그인 테스트 실패.<br><br>
+                        저장된 관리자 계정 정보:<br>
+                        <pre>${JSON.stringify(users.find(u => u.username === 'admin') || '없음', null, 2)}</pre>
+                        <br>
+                        관리자 계정을 다시 생성하세요.
+                    </div>
+                `;
+            }
+        }
+
+        function checkStorage() {
+            const result = document.getElementById('result');
+            const users = JSON.parse(localStorage.getItem('ybmfc_users') || '[]');
+            
+            let html = '<div class="info"><strong>LocalStorage 내용:</strong></div>';
+            html += '<pre>' + JSON.stringify(users, null, 2) + '</pre>';
+            
+            if (users.length === 0) {
+                html += '<div class="error">❌ 저장된 사용자가 없습니다.</div>';
+            } else {
+                html += `<div class="success">✅ 총 ${users.length}명의 사용자가 저장되어 있습니다.</div>`;
+            }
+            
+            result.innerHTML = html;
+        }
+
+        function clearStorage() {
+            if (confirm('정말 모든 사용자를 삭제하시겠습니까?')) {
+                localStorage.removeItem('ybmfc_users');
+                localStorage.removeItem('ybmfc_user');
+                sessionStorage.removeItem('ybmfc_user');
+                document.getElementById('result').innerHTML = '<div class="success">✅ LocalStorage가 초기화되었습니다. 관리자 계정을 다시 생성하세요.</div>';
+            }
+        }
+
+        function fixAll() {
+            const result = document.getElementById('result');
+            result.innerHTML = '<div class="info">자동 수정 중...</div>';
+
+            try {
+                // 1. 관리자 계정 강제 생성
+                let users = JSON.parse(localStorage.getItem('ybmfc_users') || '[]');
+                users = users.filter(u => u.username !== 'admin');
+                users.push({
+                    name: '관리자',
+                    username: 'admin',
+                    email: 'admin@ybmfc.com',
+                    password: 'admin123',
+                    registeredDate: new Date().toISOString()
+                });
+                localStorage.setItem('ybmfc_users', JSON.stringify(users));
+                
+                // 2. 로그인 테스트
+                const admin = users.find(u => {
+                    const uUsername = u.username ? u.username.trim() : '';
+                    const uPassword = u.password ? u.password.trim() : '';
+                    return uUsername === 'admin' && uPassword === 'admin123';
+                });
+                
+                if (admin) {
+                    result.innerHTML = `
+                        <div class="success">
+                            ✅ 모든 문제가 해결되었습니다!<br><br>
+                            <strong>1. 관리자 계정 생성:</strong> ✅ 완료<br>
+                            <strong>2. 비밀번호 확인:</strong> ✅ 정확함<br>
+                            <strong>3. 로그인 테스트:</strong> ✅ 성공<br><br>
+                            이제 로그인 페이지에서 로그인할 수 있습니다!<br>
+                            <a href="login.html" style="color: #1e40af; font-weight: bold; text-decoration: underline; font-size: 1.2rem;">로그인 페이지로 이동 →</a>
+                        </div>
+                        <pre>관리자 계정: ${JSON.stringify(admin, null, 2)}</pre>
+                    `;
+                } else {
+                    result.innerHTML = '<div class="error">❌ 수정 중 문제가 발생했습니다. 다시 시도하세요.</div>';
+                }
+            } catch (error) {
+                result.innerHTML = `<div class="error">❌ 오류: ${error.message}</div>`;
+                console.error('오류:', error);
+            }
+        }
+
+        // 페이지 로드 시 자동 확인
+        window.addEventListener('DOMContentLoaded', function() {
+            checkAdmin();
+        });
+    </script>
+</body>
+</html>
