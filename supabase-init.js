@@ -73,7 +73,7 @@ async function initializeData() {
         
         if (!adminUser) {
             console.log('👤 관리자 계정을 생성합니다...');
-            await supabase
+                const { error: insertError } = await supabase
                 .from('users')
                 .insert([{
                     username: 'admin',
@@ -82,6 +82,10 @@ async function initializeData() {
                     password: 'admin123',
                     registered_date: new Date().toISOString()
                 }]);
+                
+                if (insertError) {
+                    console.error('관리자 계정 생성 오류:', insertError);
+                }
             console.log('✅ 관리자 계정 생성 완료');
         }
         

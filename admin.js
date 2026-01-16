@@ -153,9 +153,32 @@ function loadDashboard() {
 }
 
 // 회원 관리 로드
-function loadMembers() {
-    const users = JSON.parse(localStorage.getItem('ybmfc_users') || '[]');
+async function loadMembers() {
     const tbody = document.getElementById('membersTableBody');
+    
+    // Supabase에서 회원 데이터 가져오기 시도
+    let users = [];
+    try {
+        if (typeof supabase !== 'undefined' && supabase) {
+            const { data, error } = await supabase.from('users').select('*').order('registered_date', { ascending: false });
+            if (!error && data) {
+                users = data.map(user => ({
+                    name: user.name,
+                    username: user.username,
+                    email: user.email,
+                    password: user.password,
+                    registeredDate: user.registered_date
+                }));
+            }
+        }
+    } catch (e) {
+        console.log('Supabase 로드 실패, LocalStorage 사용');
+    }
+    
+    // Supabase에서 가져오지 못한 경우 LocalStorage 사용
+    if (users.length === 0) {
+        users = JSON.parse(localStorage.getItem('ybmfc_users') || '[]');
+    }
     
     if (users.length === 0) {
         tbody.innerHTML = '<tr><td colspan="6" class="no-data">회원이 없습니다.</td></tr>';
@@ -173,7 +196,7 @@ function loadMembers() {
                 <td>${date}</td>
                 <td>
                     ${user.username !== 'admin' ? 
-                        `<button class="btn-delete" onclick="deleteMember(${index})">삭제</button>` : 
+                        `<button class="btn-delete" onclick="deleteMember('${user.username}')">삭제</button>` : 
                         '<span style="color: #3b82f6;">관리자</span>'}
                 </td>
             </tr>
@@ -181,13 +204,173 @@ function loadMembers() {
     }).join('');
 }
 
+// 회원 추가 폼 표시
+function showAddMemberForm() {
+    document.getElementById('memberFormContainer').style.display = 'block';
+    document.getElementById('memberFormTitle').textContent = '회원 추가';
+    document.getElementById('memberForm').reset();
+    document.getElementById('memberForm').setAttribute('data-mode', 'add');
+}
+
+// 회원 폼 숨기기
+function hideMemberForm() {
+    document.getElementById('memberFormContainer').style.display = 'none';
+    document.getElementById('memberForm').reset();
+}
+
+// 회원 추가/수정 폼 제출
+document.addEventListener('DOMContentLoaded', function() {
+    const memberForm = document.getElementById('memberForm');
+    if (memberForm) {
+        memberForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('memberName').value.trim();
+            const username = document.getElementById('memberUsername').value.trim();
+            const email = document.getElementById('memberEmail').value.trim();
+            const password = document.getElementById('memberPassword').value;
+            
+            // 입력 검증
+            if (!name || !username || !email || !password) {
+                alert('모든 필드를 입력해주세요.');
+                return;
+            }
+            
+            // 아이디 길이 검증
+            if (username.length < 4) {
+                alert('아이디는 4자 이상이어야 합니다.');
+                return;
+            }
+            
+            // 비밀번호 길이 검증
+            if (password.length < 6) {
+                alert('비밀번호는 6자 이상이어야 합니다.');
+                return;
+            }
+            
+            // 이메일 형식 검증
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                alert('올바른 이메일 형식을 입력해주세요.');
+                return;
+            }
+            
+            // Supabase에서 중복 확인 시도
+            let duplicateCheck = false;
+            try {
+                if (typeof supabase !== 'undefined' && supabase) {
+                    // 아이디 중복 확인
+                    const { data: existingUsername } = await supabase
+                        .from('users')
+                        .select('username')
+                        .eq('username', username)
+                        .single();
+                    
+                    if (existingUsername) {
+                        alert('이미 사용 중인 아이디입니다.');
+                        return;
+                    }
+                    
+                    // 이메일 중복 확인
+                    const { data: existingEmail } = await supabase
+                        .from('users')
+                        .select('email')
+                        .eq('email', email)
+                        .single();
+                    
+                    if (existingEmail) {
+                        alert('이미 사용 중인 이메일입니다.');
+                        return;
+                    }
+                    
+                    duplicateCheck = true;
+                }
+            } catch (e) {
+                console.log('Supabase 중복 확인 실패, LocalStorage에서 확인:', e);
+            }
+            
+            // LocalStorage에서 중복 확인
+            const existingUsers = JSON.parse(localStorage.getItem('ybmfc_users') || '[]');
+            if (existingUsers.some(u => u.username === username)) {
+                alert('이미 사용 중인 아이디입니다.');
+                return;
+            }
+            if (existingUsers.some(u => u.email === email)) {
+                alert('이미 사용 중인 이메일입니다.');
+                return;
+            }
+            
+            // Supabase에 추가 시도
+            try {
+                if (typeof supabase !== 'undefined' && supabase && duplicateCheck) {
+                    const { data, error } = await supabase.from('users').insert([{
+                        name: name,
+                        username: username,
+                        email: email,
+                        password: password,
+                        registered_date: new Date().toISOString()
+                    }]).select();
+                    
+                    if (!error && data && data.length > 0) {
+                        alert('회원이 추가되었습니다.');
+                        hideMemberForm();
+                        loadMembers();
+                        loadDashboard();
+                        return;
+                    } else {
+                        console.log('Supabase 추가 실패:', error);
+                        // 에러가 있어도 LocalStorage에 추가
+                    }
+                }
+            } catch (e) {
+                console.log('Supabase 추가 오류, LocalStorage 사용:', e);
+            }
+            
+            // LocalStorage에 추가
+            const newUser = {
+                name: name,
+                username: username,
+                email: email,
+                password: password,
+                registeredDate: new Date().toISOString()
+            };
+            
+            existingUsers.push(newUser);
+            localStorage.setItem('ybmfc_users', JSON.stringify(existingUsers));
+            
+            alert('회원이 추가되었습니다.');
+            hideMemberForm();
+            loadMembers();
+            loadDashboard();
+        });
+    }
+});
+
 // 회원 삭제
-function deleteMember(index) {
+async function deleteMember(username) {
     if (!confirm('정말 이 회원을 삭제하시겠습니까?')) return;
     
+    // Supabase에서 삭제 시도
+    try {
+        if (typeof supabase !== 'undefined' && supabase) {
+            const { error } = await supabase.from('users').delete().eq('username', username);
+            if (!error) {
+                alert('회원이 삭제되었습니다.');
+                loadMembers();
+                loadDashboard();
+                return;
+            } else {
+                console.log('Supabase 삭제 실패:', error);
+            }
+        }
+    } catch (e) {
+        console.log('Supabase 오류, LocalStorage 사용:', e);
+    }
+    
+    // LocalStorage에서 삭제
     const users = JSON.parse(localStorage.getItem('ybmfc_users') || '[]');
-    users.splice(index, 1);
-    localStorage.setItem('ybmfc_users', JSON.stringify(users));
+    const filteredUsers = users.filter(u => u.username !== username);
+    localStorage.setItem('ybmfc_users', JSON.stringify(filteredUsers));
     
     loadMembers();
     loadDashboard();

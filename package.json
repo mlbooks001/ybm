@@ -1,0 +1,12 @@
+{
+  "name": "ybm-fc",
+  "version": "1.0.0",
+  "description": "YBM FC 축구팀 홈페이지",
+  "scripts": {
+    "sync": "node auto-sync.js",
+    "deploy": "git add . && git commit -m '자동 배포' && git push origin main"
+  },
+  "keywords": ["ybm", "fc", "football", "soccer"],
+  "author": "mlbooks001",
+  "license": "MIT"
+}
