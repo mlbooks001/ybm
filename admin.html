@@ -38,10 +38,9 @@
                 <li><a href="#dashboard" class="menu-item active" data-section="dashboard">📊 대시보드</a></li>
                 <li><a href="#members" class="menu-item" data-section="members">👥 회원 관리</a></li>
                 <li><a href="#dues" class="menu-item" data-section="dues">💰 회비 관리</a></li>
-                <li><a href="#players" class="menu-item" data-section="players">⚽ 선수 관리</a></li>
                 <li><a href="#schedule" class="menu-item" data-section="schedule">📅 경기 일정</a></li>
                 <li><a href="#records" class="menu-item" data-section="records">📊 경기 기록</a></li>
-                <li><a href="#news" class="menu-item" data-section="news">📰 뉴스 관리</a></li>
+                <li><a href="#news" class="menu-item" data-section="news">📰 회원 소식</a></li>
             </ul>
         </aside>
 
@@ -55,13 +54,6 @@
                         <div class="card-info">
                             <h3>총 회원수</h3>
                             <p class="card-number" id="totalMembers">0</p>
-                        </div>
-                    </div>
-                    <div class="dashboard-card">
-                        <div class="card-icon">⚽</div>
-                        <div class="card-info">
-                            <h3>총 선수수</h3>
-                            <p class="card-number" id="totalPlayers">0</p>
                         </div>
                     </div>
                     <div class="dashboard-card">
@@ -81,7 +73,7 @@
                     <div class="dashboard-card">
                         <div class="card-icon">📰</div>
                         <div class="card-info">
-                            <h3>총 뉴스</h3>
+                            <h3>총 소식</h3>
                             <p class="card-number" id="totalNews">0</p>
                         </div>
                     </div>
@@ -307,73 +299,6 @@
                 </div>
             </section>
 
-            <!-- 선수 관리 섹션 -->
-            <section id="players-section" class="admin-section">
-                <div class="section-header">
-                    <h2>선수 관리</h2>
-                    <button class="btn-add" onclick="showAddPlayerForm()">+ 선수 추가</button>
-                </div>
-
-                <div id="playerFormContainer" class="form-container" style="display: none;">
-                    <form id="playerForm" class="admin-form">
-                        <h3 id="playerFormTitle">선수 추가</h3>
-                        <input type="hidden" id="playerEditIndex">
-                        
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="playerName">선수 이름 *</label>
-                                <input type="text" id="playerName" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="playerNumber">등번호 *</label>
-                                <input type="number" id="playerNumber" required min="1" max="99">
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="playerPosition">포지션 *</label>
-                                <select id="playerPosition" required>
-                                    <option value="">선택하세요</option>
-                                    <option value="골키퍼">골키퍼</option>
-                                    <option value="수비수">수비수</option>
-                                    <option value="미드필더">미드필더</option>
-                                    <option value="포워드">포워드</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="playerDesc">설명</label>
-                                <input type="text" id="playerDesc" placeholder="선수 설명">
-                            </div>
-                        </div>
-
-                        <div class="form-actions">
-                            <button type="submit" class="btn-save">저장</button>
-                            <button type="button" class="btn-cancel" onclick="hidePlayerForm()">취소</button>
-                        </div>
-                    </form>
-                </div>
-
-                <div class="table-container">
-                    <table class="admin-table">
-                        <thead>
-                            <tr>
-                                <th>등번호</th>
-                                <th>이름</th>
-                                <th>포지션</th>
-                                <th>설명</th>
-                                <th>관리</th>
-                            </tr>
-                        </thead>
-                        <tbody id="playersTableBody">
-                            <tr>
-                                <td colspan="5" class="no-data">선수가 없습니다.</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-
             <!-- 경기 일정 섹션 -->
             <section id="schedule-section" class="admin-section">
                 <div class="section-header">
@@ -543,16 +468,16 @@
                 </div>
             </section>
 
-            <!-- 뉴스 관리 섹션 -->
+            <!-- 회원 소식 섹션 -->
             <section id="news-section" class="admin-section">
                 <div class="section-header">
-                    <h2>뉴스 관리</h2>
-                    <button class="btn-add" onclick="showAddNewsForm()">+ 뉴스 추가</button>
+                    <h2>회원 소식</h2>
+                    <button class="btn-add" onclick="showAddNewsForm()">+ 소식 추가</button>
                 </div>
 
                 <div id="newsFormContainer" class="form-container" style="display: none;">
                     <form id="newsForm" class="admin-form">
-                        <h3 id="newsFormTitle">뉴스 추가</h3>
+                        <h3 id="newsFormTitle">소식 추가</h3>
                         <input type="hidden" id="newsEditIndex">
                         
                         <div class="form-group">
@@ -571,9 +496,9 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="newsImages">사진 첨부 (최대 3장)</label>
+                            <label for="newsImages">사진 첨부 (최대 3장) *</label>
                             <input type="file" id="newsImages" accept="image/*" multiple onchange="handleNewsImageUpload(event)">
-                            <small>JPG, PNG, GIF 파일만 가능 (각 파일 최대 10MB) - 업로드 시 자동 압축됩니다</small>
+                            <small>JPG, PNG, GIF 파일만 가능 (각 파일 최대 10MB) - 업로드 시 자동 압축됩니다. 사진을 올려주세요.</small>
                         </div>
 
                         <div id="newsImagePreview" class="image-preview-container"></div>
@@ -598,7 +523,7 @@
                         </thead>
                         <tbody id="newsTableBody">
                             <tr>
-                                <td colspan="5" class="no-data">뉴스가 없습니다.</td>
+                                <td colspan="5" class="no-data">회원 소식이 없습니다.</td>
                             </tr>
                         </tbody>
                     </table>

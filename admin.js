@@ -40,7 +40,6 @@ function initializeAdmin() {
     loadDashboard();
     loadMembers();
     loadDues();
-    loadPlayers();
     loadMatches();
     loadRecords();
     loadNews();
@@ -86,17 +85,6 @@ function initializeData() {
         localStorage.setItem('ybmfc_users', JSON.stringify(users));
     }
     
-    // 선수 데이터가 없으면 샘플 생성
-    if (!localStorage.getItem('ybmfc_players')) {
-        const samplePlayers = [
-            { number: 10, name: '김민수', position: '미드필더', desc: '팀의 핵심 플레이메이커' },
-            { number: 9, name: '이준호', position: '포워드', desc: '시즌 최다 득점왕' },
-            { number: 1, name: '박지성', position: '골키퍼', desc: '든든한 마지막 수비수' },
-            { number: 5, name: '최동원', position: '수비수', desc: '강력한 센터백' }
-        ];
-        localStorage.setItem('ybmfc_players', JSON.stringify(samplePlayers));
-    }
-    
     // 경기 일정이 없으면 샘플 생성
     if (!localStorage.getItem('ybmfc_matches')) {
         const sampleMatches = [
@@ -131,13 +119,11 @@ function initializeData() {
 // 대시보드 로드
 function loadDashboard() {
     const users = JSON.parse(localStorage.getItem('ybmfc_users') || '[]');
-    const players = JSON.parse(localStorage.getItem('ybmfc_players') || '[]');
     const matches = JSON.parse(localStorage.getItem('ybmfc_matches') || '[]');
     const news = JSON.parse(localStorage.getItem('ybmfc_news') || '[]');
     const records = JSON.parse(localStorage.getItem('ybmfc_records') || '[]');
     
     document.getElementById('totalMembers').textContent = users.length;
-    document.getElementById('totalPlayers').textContent = players.length;
     document.getElementById('totalMatches').textContent = matches.length;
     document.getElementById('totalRecords').textContent = records.length;
     document.getElementById('totalNews').textContent = news.length;
@@ -377,101 +363,6 @@ async function deleteMember(username) {
     alert('회원이 삭제되었습니다.');
 }
 
-// 선수 관리 로드
-function loadPlayers() {
-    const players = JSON.parse(localStorage.getItem('ybmfc_players') || '[]');
-    const tbody = document.getElementById('playersTableBody');
-    
-    if (players.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="no-data">선수가 없습니다.</td></tr>';
-        return;
-    }
-    
-    tbody.innerHTML = players.map((player, index) => `
-        <tr>
-            <td>${player.number}</td>
-            <td>${player.name}</td>
-            <td>${player.position}</td>
-            <td>${player.desc || '-'}</td>
-            <td>
-                <button class="btn-edit" onclick="editPlayer(${index})">수정</button>
-                <button class="btn-delete" onclick="deletePlayer(${index})">삭제</button>
-            </td>
-        </tr>
-    `).join('');
-}
-
-// 선수 추가 폼 표시
-function showAddPlayerForm() {
-    document.getElementById('playerFormContainer').style.display = 'block';
-    document.getElementById('playerFormTitle').textContent = '선수 추가';
-    document.getElementById('playerForm').reset();
-    document.getElementById('playerEditIndex').value = '';
-}
-
-// 선수 폼 숨기기
-function hidePlayerForm() {
-    document.getElementById('playerFormContainer').style.display = 'none';
-    document.getElementById('playerForm').reset();
-}
-
-// 선수 폼 제출
-document.getElementById('playerForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const players = JSON.parse(localStorage.getItem('ybmfc_players') || '[]');
-    const editIndex = document.getElementById('playerEditIndex').value;
-    
-    const playerData = {
-        number: parseInt(document.getElementById('playerNumber').value),
-        name: document.getElementById('playerName').value,
-        position: document.getElementById('playerPosition').value,
-        desc: document.getElementById('playerDesc').value
-    };
-    
-    if (editIndex !== '') {
-        // 수정
-        players[editIndex] = playerData;
-        alert('선수 정보가 수정되었습니다.');
-    } else {
-        // 추가
-        players.push(playerData);
-        alert('선수가 추가되었습니다.');
-    }
-    
-    localStorage.setItem('ybmfc_players', JSON.stringify(players));
-    loadPlayers();
-    loadDashboard();
-    hidePlayerForm();
-});
-
-// 선수 수정
-function editPlayer(index) {
-    const players = JSON.parse(localStorage.getItem('ybmfc_players') || '[]');
-    const player = players[index];
-    
-    document.getElementById('playerFormContainer').style.display = 'block';
-    document.getElementById('playerFormTitle').textContent = '선수 수정';
-    document.getElementById('playerEditIndex').value = index;
-    document.getElementById('playerNumber').value = player.number;
-    document.getElementById('playerName').value = player.name;
-    document.getElementById('playerPosition').value = player.position;
-    document.getElementById('playerDesc').value = player.desc || '';
-}
-
-// 선수 삭제
-function deletePlayer(index) {
-    if (!confirm('정말 이 선수를 삭제하시겠습니까?')) return;
-    
-    const players = JSON.parse(localStorage.getItem('ybmfc_players') || '[]');
-    players.splice(index, 1);
-    localStorage.setItem('ybmfc_players', JSON.stringify(players));
-    
-    loadPlayers();
-    loadDashboard();
-    alert('선수가 삭제되었습니다.');
-}
-
 // 경기 일정 로드
 function loadMatches() {
     const matches = JSON.parse(localStorage.getItem('ybmfc_matches') || '[]');
@@ -576,7 +467,7 @@ function loadNews() {
     const tbody = document.getElementById('newsTableBody');
     
     if (news.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="no-data">뉴스가 없습니다.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" class="no-data">회원 소식이 없습니다.</td></tr>';
         return;
     }
     
@@ -607,10 +498,10 @@ function loadNews() {
 // 뉴스 이미지 임시 저장
 let tempNewsImages = [];
 
-// 뉴스 추가 폼 표시
+// 소식 추가 폼 표시
 function showAddNewsForm() {
     document.getElementById('newsFormContainer').style.display = 'block';
-    document.getElementById('newsFormTitle').textContent = '뉴스 추가';
+    document.getElementById('newsFormTitle').textContent = '소식 추가';
     document.getElementById('newsForm').reset();
     document.getElementById('newsEditIndex').value = '';
     tempNewsImages = [];
@@ -778,11 +669,11 @@ document.getElementById('newsForm').addEventListener('submit', function(e) {
         const existingImages = news[editIndex].images || [];
         newsData.images = tempNewsImages.length > 0 ? [...tempNewsImages] : existingImages;
         news[editIndex] = newsData;
-        alert('뉴스가 수정되었습니다.');
+        alert('회원 소식이 수정되었습니다.');
     } else {
         // 추가
         news.push(newsData);
-        alert('뉴스가 추가되었습니다.');
+        alert('회원 소식이 추가되었습니다.');
     }
     
     localStorage.setItem('ybmfc_news', JSON.stringify(news));
@@ -797,7 +688,7 @@ function editNews(index) {
     const item = news[index];
     
     document.getElementById('newsFormContainer').style.display = 'block';
-    document.getElementById('newsFormTitle').textContent = '뉴스 수정';
+    document.getElementById('newsFormTitle').textContent = '소식 수정';
     document.getElementById('newsEditIndex').value = index;
     document.getElementById('newsDate').value = item.date;
     document.getElementById('newsTitle').value = item.title;
@@ -808,9 +699,9 @@ function editNews(index) {
     displayNewsImagePreviews();
 }
 
-// 뉴스 삭제
+// 소식 삭제
 function deleteNews(index) {
-    if (!confirm('정말 이 뉴스를 삭제하시겠습니까?')) return;
+    if (!confirm('정말 이 회원 소식을 삭제하시겠습니까?')) return;
     
     const news = JSON.parse(localStorage.getItem('ybmfc_news') || '[]');
     news.splice(index, 1);
@@ -818,7 +709,7 @@ function deleteNews(index) {
     
     loadNews();
     loadDashboard();
-    alert('뉴스가 삭제되었습니다.');
+    alert('회원 소식이 삭제되었습니다.');
 }
 
 // ========== 경기 기록 관리 ==========
