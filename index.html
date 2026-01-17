@@ -21,12 +21,12 @@
             <div class="logo">
                 <h1>⚽ YBM FC</h1>
             </div>
-            <ul class="nav-menu">
-                <li><a href="index.html" class="active">홈</a></li>
-                <li><a href="#about">팀 소개</a></li>
-                <li><a href="#players">선수단</a></li>
-                <li><a href="#schedule">경기 일정</a></li>
-                <li><a href="#news">뉴스</a></li>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="index.html" class="active" data-default="true">홈</a></li>
+                <li><a href="#about" data-default="true">팀소개</a></li>
+                <li><a href="#news" data-default="true">회원소식</a></li>
+                <li><a href="#schedule" data-default="true">경기일정</a></li>
+                <li><a href="register.html" data-default="true">가입문의</a></li>
             </ul>
             <div class="nav-auth">
                 <a href="login.html" class="btn-login" id="loginBtn">로그인</a>
@@ -153,7 +153,7 @@
 
     <section id="news" class="news">
         <div class="container">
-            <h2>최신 뉴스</h2>
+            <h2>회원 소식</h2>
             <div class="news-grid" id="newsGrid">
                 <!-- 뉴스는 JavaScript로 동적으로 로드됩니다 -->
                 <div class="news-card">

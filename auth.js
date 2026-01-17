@@ -1,6 +1,17 @@
 // 페이지 로드 시 로그인 상태 확인
 document.addEventListener('DOMContentLoaded', function() {
     checkLoginStatus();
+    
+    // index.html에서만 메뉴 업데이트 확인
+    if (document.getElementById('navMenu')) {
+        // 로그인 상태 재확인하여 메뉴 업데이트
+        setTimeout(() => {
+            const user = getCurrentUser();
+            if (user && document.getElementById('navMenu')) {
+                updateMenuForLoggedInUser();
+            }
+        }, 200);
+    }
 });
 
 // 로그인 상태 확인
@@ -26,6 +37,7 @@ function updateUIForLoggedInUser(user) {
     const userInfo = document.getElementById('userInfo');
     const userName = document.getElementById('userName');
     const adminBtn = document.getElementById('adminBtn');
+    const navMenu = document.getElementById('navMenu');
     
     if (loginBtn) loginBtn.style.display = 'none';
     if (registerBtn) registerBtn.style.display = 'none';
@@ -41,6 +53,82 @@ function updateUIForLoggedInUser(user) {
     if (adminBtn && user.username === 'admin') {
         adminBtn.style.display = 'inline-block';
     }
+    
+    // 로그인 시 메뉴를 관리자 페이지와 동일하게 변경 (항상 실행)
+    if (navMenu) {
+        // 약간의 지연을 두어 DOM이 완전히 로드된 후 실행
+        setTimeout(() => {
+            updateMenuForLoggedInUser();
+        }, 100);
+    }
+}
+
+// 로그인 시 메뉴 업데이트 (기본 메뉴 유지)
+function updateMenuForLoggedInUser() {
+    const navMenu = document.getElementById('navMenu');
+    if (!navMenu) {
+        console.log('navMenu 요소를 찾을 수 없습니다.');
+        return;
+    }
+    
+    // 로그인 후에도 기본 메뉴 구조 유지
+    navMenu.innerHTML = `
+        <li><a href="index.html" class="nav-link active">홈</a></li>
+        <li><a href="#about" class="nav-link">팀소개</a></li>
+        <li><a href="#news" class="nav-link">회원소식</a></li>
+        <li><a href="#schedule" class="nav-link">경기일정</a></li>
+        <li><a href="register.html" class="nav-link">가입문의</a></li>
+    `;
+    
+    // 기존 스타일 클래스도 유지
+    navMenu.querySelectorAll('a').forEach(link => {
+        link.classList.add('nav-link');
+    });
+    
+    // 메뉴 클릭 이벤트 추가
+    const menuItems = navMenu.querySelectorAll('a');
+    menuItems.forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // 모든 메뉴에서 active 제거
+            menuItems.forEach(i => i.classList.remove('active'));
+            // 클릭한 메뉴에 active 추가
+            this.classList.add('active');
+            
+            // 해당 섹션으로 스크롤
+            const href = this.getAttribute('href');
+            if (href && href.startsWith('#')) {
+                const sectionId = href.substring(1);
+                scrollToSection(sectionId);
+            }
+        });
+    });
+    
+    console.log('✅ 로그인 사용자 메뉴가 관리자 페이지와 동일하게 설정되었습니다.');
+}
+
+// 섹션으로 스크롤
+function scrollToSection(sectionId) {
+    // 섹션 ID 매핑
+    const sectionMap = {
+        'dashboard': '#about',  // 대시보드를 팀 소개로 매핑
+        'members': '#about',    // 회원 관리를 팀 소개로 매핑 (추후 섹션 추가 가능)
+        'dues': '#about',       // 회비 관리를 팀 소개로 매핑 (추후 섹션 추가 가능)
+        'schedule': '#schedule',
+        'records': '#schedule', // 경기 기록을 경기 일정으로 매핑 (추후 섹션 추가 가능)
+        'news': '#news'
+    };
+    
+    const targetId = sectionMap[sectionId] || `#${sectionId}`;
+    const targetElement = document.querySelector(targetId);
+    
+    if (targetElement) {
+        targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+        // 섹션이 없으면 페이지 상단으로 스크롤
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
 }
 
 // 로그아웃된 사용자를 위한 UI 업데이트
@@ -49,11 +137,31 @@ function updateUIForLoggedOutUser() {
     const registerBtn = document.getElementById('registerBtn');
     const userInfo = document.getElementById('userInfo');
     const adminBtn = document.getElementById('adminBtn');
+    const navMenu = document.getElementById('navMenu');
     
     if (loginBtn) loginBtn.style.display = 'inline-block';
     if (registerBtn) registerBtn.style.display = 'inline-block';
     if (userInfo) userInfo.style.display = 'none';
     if (adminBtn) adminBtn.style.display = 'none';
+    
+    // 로그아웃 시 메뉴를 기본 메뉴로 복원
+    if (navMenu) {
+        restoreDefaultMenu();
+    }
+}
+
+// 기본 메뉴 복원
+function restoreDefaultMenu() {
+    const navMenu = document.getElementById('navMenu');
+    if (!navMenu) return;
+    
+    navMenu.innerHTML = `
+        <li><a href="index.html" class="active">홈</a></li>
+        <li><a href="#about">팀소개</a></li>
+        <li><a href="#news">회원소식</a></li>
+        <li><a href="#schedule">경기일정</a></li>
+        <li><a href="register.html">가입문의</a></li>
+    `;
 }
 
 // 로그아웃 버튼 이벤트 리스너
