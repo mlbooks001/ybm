@@ -21,10 +21,10 @@
             </div>
             <ul class="nav-menu">
                 <li><a href="index.html">홈</a></li>
-                <li><a href="index.html#about">팀 소개</a></li>
-                <li><a href="index.html#players">선수단</a></li>
-                <li><a href="index.html#schedule">경기 일정</a></li>
-                <li><a href="index.html#news">뉴스</a></li>
+                <li><a href="index.html#about">팀소개</a></li>
+                <li><a href="index.html#news">회원소식</a></li>
+                <li><a href="index.html#schedule">경기일정</a></li>
+                <li><a href="register.html">가입문의</a></li>
             </ul>
         </div>
     </nav>
@@ -32,8 +32,13 @@
     <section class="auth-section">
         <div class="auth-container">
             <div class="auth-box">
-                <h2>회원가입</h2>
-                <p class="auth-subtitle">YBM FC의 새로운 멤버가 되어주세요</p>
+                <h2 id="registerTitle">회원가입</h2>
+                <p class="auth-subtitle" id="registerSubtitle">YBM FC의 새로운 멤버가 되어주세요</p>
+                
+                <div id="registerInfoContent" class="register-info-content" style="display: none;">
+                    <div id="registerContent"></div>
+                    <div id="registerContact" class="register-contact"></div>
+                </div>
                 
                 <form id="registerForm" class="auth-form">
                     <div class="form-group">
@@ -92,6 +97,38 @@
     </footer>
 
     <script>
+        // 페이지 로드 시 안내글 로드
+        document.addEventListener('DOMContentLoaded', function() {
+            loadRegisterInfo();
+        });
+
+        // 가입문의 안내글 로드
+        function loadRegisterInfo() {
+            const registerInfo = JSON.parse(localStorage.getItem('ybmfc_register_info') || '{}');
+            
+            if (registerInfo.title) {
+                document.getElementById('registerTitle').textContent = registerInfo.title;
+            }
+            
+            if (registerInfo.subtitle) {
+                document.getElementById('registerSubtitle').textContent = registerInfo.subtitle;
+            }
+            
+            const contentDiv = document.getElementById('registerContent');
+            const contactDiv = document.getElementById('registerContact');
+            const infoContent = document.getElementById('registerInfoContent');
+            
+            if (registerInfo.content) {
+                contentDiv.innerHTML = registerInfo.content.replace(/\n/g, '<br>');
+                infoContent.style.display = 'block';
+            }
+            
+            if (registerInfo.contact) {
+                const contactLines = registerInfo.contact.split('\n');
+                contactDiv.innerHTML = contactLines.map(line => `<p>${line}</p>`).join('');
+            }
+        }
+
         document.getElementById('registerForm').addEventListener('submit', function(e) {
             e.preventDefault();
             

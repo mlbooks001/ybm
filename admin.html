@@ -41,6 +41,7 @@
                 <li><a href="#schedule" class="menu-item" data-section="schedule">📅 경기 일정</a></li>
                 <li><a href="#records" class="menu-item" data-section="records">📊 경기 기록</a></li>
                 <li><a href="#news" class="menu-item" data-section="news">📰 회원 소식</a></li>
+                <li><a href="#register-info" class="menu-item" data-section="register-info">📝 가입문의 안내</a></li>
             </ul>
         </aside>
 
@@ -527,6 +528,54 @@
                             </tr>
                         </tbody>
                     </table>
+                </div>
+            </section>
+
+            <!-- 가입문의 안내 섹션 -->
+            <section id="register-info-section" class="admin-section">
+                <div class="section-header">
+                    <h2>가입문의 안내 관리</h2>
+                    <button class="btn-add" onclick="showRegisterInfoForm()">✏️ 안내글 수정</button>
+                </div>
+
+                <div id="registerInfoFormContainer" class="form-container" style="display: none;">
+                    <form id="registerInfoForm" class="admin-form">
+                        <h3>가입문의 안내글 설정</h3>
+                        
+                        <div class="form-group">
+                            <label for="registerTitle">제목 *</label>
+                            <input type="text" id="registerTitle" required placeholder="예: 회원가입">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="registerSubtitle">부제목 *</label>
+                            <input type="text" id="registerSubtitle" required placeholder="예: YBM FC의 새로운 멤버가 되어주세요">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="registerContent">안내 내용 *</label>
+                            <textarea id="registerContent" rows="8" required placeholder="가입 안내 내용을 입력하세요 (HTML 태그 사용 가능)"></textarea>
+                            <small>HTML 태그를 사용하여 서식을 지정할 수 있습니다 (예: &lt;strong&gt;, &lt;br&gt; 등)</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="registerContact">문의 방법</label>
+                            <textarea id="registerContact" rows="3" placeholder="문의 이메일: info@ybmfc.com&#10;문의 전화: 02-1234-5678"></textarea>
+                            <small>문의 방법을 입력하세요 (각 줄마다 자동으로 줄바꿈됩니다)</small>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn-save">저장</button>
+                            <button type="button" class="btn-cancel" onclick="hideRegisterInfoForm()">취소</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="info-preview">
+                    <h3>현재 안내글 미리보기</h3>
+                    <div id="registerInfoPreview" class="preview-box">
+                        <p class="no-data">안내글이 설정되지 않았습니다.</p>
+                    </div>
                 </div>
             </section>
         </main>

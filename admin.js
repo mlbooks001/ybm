@@ -43,6 +43,7 @@ function initializeAdmin() {
     loadMatches();
     loadRecords();
     loadNews();
+    loadRegisterInfo();
 }
 
 // 메뉴 초기화
@@ -113,6 +114,17 @@ function initializeData() {
             { date: '2025-12-01', homeTeam: 'YBM FC', awayTeam: '대전 드래곤즈', homeScore: 2, awayScore: 0, result: '승리', scorers: '이준호(2)', attendance: 15000, venue: '홈 경기장', notes: '이준호 선수의 멀티골' }
         ];
         localStorage.setItem('ybmfc_records', JSON.stringify(sampleRecords));
+    }
+    
+    // 가입문의 안내글이 없으면 기본값 생성
+    if (!localStorage.getItem('ybmfc_register_info')) {
+        const defaultRegisterInfo = {
+            title: '회원가입',
+            subtitle: 'YBM FC의 새로운 멤버가 되어주세요',
+            content: 'YBM FC에 오신 것을 환영합니다! 우리와 함께 축구의 즐거움을 나누시겠습니까?',
+            contact: '문의 이메일: info@ybmfc.com\n문의 전화: 02-1234-5678'
+        };
+        localStorage.setItem('ybmfc_register_info', JSON.stringify(defaultRegisterInfo));
     }
 }
 
@@ -1132,3 +1144,86 @@ function deleteDues(index) {
     alert('회비 기록이 삭제되었습니다.');
 }
 
+// ========== 가입문의 안내 관리 ==========
+
+// 가입문의 안내 로드
+function loadRegisterInfo() {
+    const registerInfo = JSON.parse(localStorage.getItem('ybmfc_register_info') || '{}');
+    const preview = document.getElementById('registerInfoPreview');
+    
+    if (!preview) return;
+    
+    if (!registerInfo.title || !registerInfo.subtitle || !registerInfo.content) {
+        preview.innerHTML = '<p class="no-data">안내글이 설정되지 않았습니다.</p>';
+        return;
+    }
+    
+    // 문의 방법 포맷팅
+    let contactHtml = '';
+    if (registerInfo.contact) {
+        const contactLines = registerInfo.contact.split('\n');
+        contactHtml = contactLines.map(line => `<p>${line}</p>`).join('');
+    }
+    
+    preview.innerHTML = `
+        <div class="preview-content">
+            <h2>${registerInfo.title}</h2>
+            <p class="preview-subtitle">${registerInfo.subtitle}</p>
+            <div class="preview-body">${registerInfo.content.replace(/\n/g, '<br>')}</div>
+            ${contactHtml ? `<div class="preview-contact">${contactHtml}</div>` : ''}
+        </div>
+    `;
+}
+
+// 가입문의 안내 폼 표시
+function showRegisterInfoForm() {
+    const container = document.getElementById('registerInfoFormContainer');
+    if (container) {
+        container.style.display = 'block';
+    }
+    
+    const registerInfo = JSON.parse(localStorage.getItem('ybmfc_register_info') || '{}');
+    
+    if (document.getElementById('registerTitle')) {
+        document.getElementById('registerTitle').value = registerInfo.title || '';
+        document.getElementById('registerSubtitle').value = registerInfo.subtitle || '';
+        document.getElementById('registerContent').value = registerInfo.content || '';
+        document.getElementById('registerContact').value = registerInfo.contact || '';
+    }
+}
+
+// 가입문의 안내 폼 숨기기
+function hideRegisterInfoForm() {
+    const container = document.getElementById('registerInfoFormContainer');
+    if (container) {
+        container.style.display = 'none';
+    }
+}
+
+// 가입문의 안내 폼 제출
+document.addEventListener('DOMContentLoaded', function() {
+    const registerInfoForm = document.getElementById('registerInfoForm');
+    if (registerInfoForm) {
+        registerInfoForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const registerInfo = {
+                title: document.getElementById('registerTitle').value.trim(),
+                subtitle: document.getElementById('registerSubtitle').value.trim(),
+                content: document.getElementById('registerContent').value.trim(),
+                contact: document.getElementById('registerContact').value.trim()
+            };
+            
+            if (!registerInfo.title || !registerInfo.subtitle || !registerInfo.content) {
+                alert('제목, 부제목, 안내 내용은 필수입니다.');
+                return;
+            }
+            
+            localStorage.setItem('ybmfc_register_info', JSON.stringify(registerInfo));
+            
+            alert('가입문의 안내글이 저장되었습니다.');
+            hideRegisterInfoForm();
+            loadRegisterInfo();
+        });
+    }
+});
